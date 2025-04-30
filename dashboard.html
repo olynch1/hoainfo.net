@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HOA Dashboard</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    .card { background: #f2f2f2; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; }
+    button { padding: 10px; margin-top: 20px; background: #000; color: #fff; border: none; width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="card" id="dashboard">
+    <h2>HOA Member Dashboard</h2>
+    <p id="welcome-message"></p>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    async function verifyAccess() {
+      const token = localStorage.getItem("jwt_token");
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const res = await fetch("http://127.0.0.1:8000/me", {
+        headers: { "token": token }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        localStorage.removeItem("jwt_token");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const email = data.message.split(", ")[1].replace("You're authenticated!", "").trim();
+      document.getElementById("welcome-message").textContent = `Welcome back, ${email}`;
+    }
+
+    function logout() {
+      localStorage.removeItem("jwt_token");
+      window.location.href = "index.html";
+    }
+
+    verifyAccess();
+  </script>
+</body>
+</html>
+
