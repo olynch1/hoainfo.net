@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, Form, Depends, Header
+from secure_routes import router as secure_router
+from fastapi import FastAPI, HTTPException, Form, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from sqlmodel import select
+from sqlmodel import SQLModel, Field, select
+from starlette.responses import JSONResponse
 import os
 import random
 import requests
@@ -11,14 +13,13 @@ import bcrypt
 from jose import JWTError, jwt
 import threading
 
-from .models import User
-from .database import init_db, get_session
-
+from models import User 
+from database import init_db, get_session
 load_dotenv()
 app = FastAPI()
+app.include_router(secure_router)
 init_db()
 
-# CORS setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8080"],
@@ -27,16 +28,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# JWT config
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_SECONDS = 3600
+otp_store = {}
 
 def create_token(username: str):
-    payload = {
-        "sub": username,
-        "exp": time.time() + TOKEN_EXPIRE_SECONDS
-    }
+    payload = {"sub": username, "exp": time.time() + TOKEN_EXPIRE_SECONDS}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 def verify_token(token: str = Header(...)):
@@ -46,10 +44,23 @@ def verify_token(token: str = Header(...)):
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-# In-memory OTP store
-otp_store = {}
+def send_otp_email(recipient_email, otp_code):
+    print(f"Generated OTP for {recipient_email}: {otp_code}")
+    api_key = os.getenv("RESEND_API_KEY")
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "from": "onboarding@resend.dev",
+        "to": recipient_email,
+        "subject": "Your OTP Code",
+        "html": f"<p>Your one-time password is: <strong>{otp_code}</strong></p>"
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    print("Resend response:", response.status_code, response.text)
 
-# Cleanup task to remove expired OTPs
 def cleanup_expired_otps():
     while True:
         now = time.time()
@@ -57,14 +68,13 @@ def cleanup_expired_otps():
         for email in expired:
             del otp_store[email]
             print(f"[CLEANUP] Expired OTP removed for: {email}")
-        time.sleep(60)
+        time.sleep(30)
 
 @app.on_event("startup")
 def start_cleanup_thread():
     thread = threading.Thread(target=cleanup_expired_otps, daemon=True)
     thread.start()
 
-# Pydantic model for user
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -86,10 +96,7 @@ def register(user: UserLogin):
 def login(user: UserLogin):
     with get_session() as session:
         db_user = session.exec(select(User).where(User.email == user.username)).first()
-        if not db_user:
-            raise HTTPException(status_code=401, detail="Invalid username or password")
-
-        if not bcrypt.checkpw(user.password.encode("utf-8"), db_user.hashed_password.encode()):
+        if not db_user or not bcrypt.checkpw(user.password.encode("utf-8"), db_user.hashed_password.encode()):
             raise HTTPException(status_code=401, detail="Invalid username or password")
 
         otp = str(random.randint(100000, 999999))
@@ -130,24 +137,14 @@ def verify_otp(username: str = Form(...), code: str = Form(...)):
 def get_me(username: str = Depends(verify_token)):
     return {"message": f"Hello, {username}. You're authenticated!"}
 
-def send_otp_email(recipient_email, otp_code):
-    print(f"Generated OTP for {recipient_email}: {otp_code}")
+@app.post("/stripe/webhook")
+async def stripe_webhook(request: Request):
+    print("✅ STRIPE ENDPOINT HIT")
+    payload = await request.body()
+    print(payload)
+    return JSONResponse(status_code=200, content={"status": "ok"})
 
-    api_key = os.getenv("RESEND_API_KEY")
-    url = "https://api.resend.com/emails"
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "from": "onboarding@resend.dev",
-        "to": recipient_email,
-        "subject": "Your OTP Code",
-        "html": f"<p>Your one-time password is: <strong>{otp_code}</strong></p>"
-    }
-
-    response = requests.post(url, headers=headers, json=payload)
-    print("Resend response:", response.status_code, response.text)
+@app.get("/")
+def read_root():
+    return {"message": "HOA backend is online."}
 
