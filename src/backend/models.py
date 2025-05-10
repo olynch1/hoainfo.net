@@ -1,29 +1,56 @@
-
-from sqlmodel import SQLModel, Field
 from typing import Optional
+from datetime import datetime
+from sqlmodel import SQLModel, Field
+import uuid
 
-# ✅ User model used for role-based/tier-based access (not a DB table for now)
-class User(SQLModel):
+class User(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     email: str
-    role: str
-    tier: Optional[str] = None
+    role: str = "resident"  # Options: resident, board, admin
+    tier: str = "solo"       # Options: solo, household, landlord
+    is_tenant: bool = Field(default=False)
+    community_id: str
+    verified: bool = Field(default=False)
 
-# ✅ Complaint database model
+class TenantInvite(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    landlord_id: str  # The user ID of the landlord
+    tenant_email: str  # The email address of the tenant
+    token: str  # Invite token or code for tenant to claim
+    claimed: bool = Field(default=False)
+    invited_at: datetime = Field(default_factory=datetime.utcnow)
+    claimed_at: Optional[datetime] = None
+    community_id: str
+
+class Message(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    subject: str
+    body: str
+    user_id: str
+    community_id: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    response: Optional[str] = None
+    responded_by: Optional[str] = None
+    responded_at: Optional[datetime] = None
+    is_read: bool = False
+
 class Complaint(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     title: str
     description: str
-    timestamp: str
-    user_email: str
-    photo_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user_id: str
+    community_id: str
+    status: str = "open"  # Options: open, closed, resolved
 
-# ✅ Optional response model for filtered/safe outputs
-class ComplaintResponse(SQLModel):
-    id: int
-    title: str
-    description: str
-    timestamp: str
-    user_email: str
-    photo_url: Optional[str]
+class ActivityLog(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str
+    action: str
+    endpoint: str
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    community_id: Optional[str] = None
 
 

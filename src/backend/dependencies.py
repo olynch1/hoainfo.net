@@ -2,7 +2,7 @@
 
 from fastapi import Depends, HTTPException
 from starlette.status import HTTP_403_FORBIDDEN
-from models import User  # Adjust if needed
+from src.backend.models import User
 from auth import get_current_user  # Make sure this returns User with role and tier
 
 # 🔐 Require a single specific role (e.g. "admin")
