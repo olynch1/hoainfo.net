@@ -1,56 +1,69 @@
-from typing import Optional
-from datetime import datetime
-from sqlmodel import SQLModel, Field
+from sqlalchemy import Column
+from sqlalchemy.dialects.sqlite import JSON
+from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, List
 import uuid
 
 class User(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     email: str
-    role: str = "resident"  # Options: resident, board, admin
-    tier: str = "solo"       # Options: solo, household, landlord
-    is_tenant: bool = Field(default=False)
-    community_id: str
-    verified: bool = Field(default=False)
-
-class TenantInvite(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    landlord_id: str  # The user ID of the landlord
-    tenant_email: str  # The email address of the tenant
-    token: str  # Invite token or code for tenant to claim
-    claimed: bool = Field(default=False)
-    invited_at: datetime = Field(default_factory=datetime.utcnow)
-    claimed_at: Optional[datetime] = None
+    password_hash: str  # ✅ required for bcrypt
+    role: Optional[str] = Field(default="resident")  # resident, board, admin
+    tier: Optional[str] = Field(default="solo")      # solo, household, landlord
     community_id: str
 
-class Message(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    subject: str
-    body: str
-    user_id: str
-    community_id: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    response: Optional[str] = None
-    responded_by: Optional[str] = None
-    responded_at: Optional[datetime] = None
-    is_read: bool = False
+    # Reverse relationships (optional)
+    complaints: List["Complaint"] = Relationship(back_populates="user")
+    messages: List["Message"] = Relationship(back_populates="user")
+
 
 class Complaint(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
     title: str
     description: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    user_id: str
+    timestamp: Optional[str]
+    photo_url: Optional[str] = None
     community_id: str
-    status: str = "open"  # Options: open, closed, resolved
+
+    user: Optional[User] = Relationship(back_populates="complaints")
+
+
+class Message(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    subject: str
+    body: str
+    timestamp: Optional[str]
+    read: bool = False
+    response: Optional[str] = None
+    community_id: str
+
+    user: Optional[User] = Relationship(back_populates="messages")
+
 
 class ActivityLog(SQLModel, table=True):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     user_id: str
     action: str
     endpoint: str
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-    community_id: Optional[str] = None
+    ip_address: str
+    user_agent: str
+    timestamp: str
+    community_id: str
 
+
+class TenantInvite(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    landlord_email: str
+    tenant_email: str
+    community_id: str
+    verified: bool = False
+
+class BoardVerificationRequest(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    community_id: str
+    approved_by: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+    verified: bool = Field(default=False)
 

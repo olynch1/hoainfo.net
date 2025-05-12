@@ -1,19 +1,16 @@
-from sqlmodel import SQLModel, create_engine, Session
-from sqlalchemy.orm import sessionmaker
+from sqlmodel import SQLModel, Session, create_engine
 
-# === Database Configuration ===
-sqlite_file_name = "hoainfo_reset.db"  # renamed to force a fresh DB
-DATABASE_URL = f"sqlite:///{sqlite_file_name}"
-engine = create_engine(DATABASE_URL, echo=True)
+# 📦 SQLite database file
+DATABASE_URL = "sqlite:///./database.db"
 
-# SQLAlchemy-compatible session factory
-SessionLocal = sessionmaker(bind=engine, class_=Session, autocommit=False, autoflush=False)
+# 🌐 Create engine
+engine = create_engine(DATABASE_URL, echo=True)  # Set echo=False to silence SQL logs
 
-# Create all tables defined in SQLModel models
+# 🔁 Used by FastAPI routes
+def get_session():
+    return Session(engine)
+
+# 🏗️ Called to create all tables from models.py
 def init_db():
     SQLModel.metadata.create_all(engine)
-
-# Return a session directly (for use with `with` blocks)
-def get_session():
-    return SessionLocal()
 
