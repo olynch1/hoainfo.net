@@ -25,7 +25,7 @@ class Complaint(SQLModel, table=True):
     timestamp: Optional[str]
     photo_url: Optional[str] = None
     community_id: str
-
+    read: bool = False
     user: Optional[User] = Relationship(back_populates="complaints")
 
 
