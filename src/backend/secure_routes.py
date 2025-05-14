@@ -73,8 +73,7 @@ def upgrade_tier(
 
 # 🤖 AI Helpdesk Access
 @router.get("/ai/helpdesk")
-def ai_helpdesk(user=Depends(require_tier("landlord", "household", "solo"))):
-    print(f"[DEBUG] User tier: {user.tier}")
+def ai_helpdesk(user=Depends(require_tier("solo", "household", "landlord"))):
     return {"response": f"You're accessing premium AI support as a {user.tier} user."}
 
 # 📖 Get Complaints
