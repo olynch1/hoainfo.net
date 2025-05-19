@@ -1,16 +1,14 @@
-from sqlmodel import SQLModel, Session, create_engine
+from sqlmodel import SQLModel, create_engine, Session
 
-# 📦 SQLite database file
-DATABASE_URL = "sqlite:///./database.db"
+DATABASE_URL = "sqlite:///hoainfo.db"
+engine = create_engine(DATABASE_URL, echo=False)
 
-# 🌐 Create engine
-engine = create_engine(DATABASE_URL, echo=True)  # Set echo=False to silence SQL logs
+def init_db():
+    SQLModel.metadata.create_all(engine)
 
-# 🔁 Used by FastAPI routes
 def get_session():
     return Session(engine)
 
-# 🏗️ Called to create all tables from models.py
-def init_db():
-    SQLModel.metadata.create_all(engine)
+# (Optional) In-memory OTP store
+otp_store = {}
 

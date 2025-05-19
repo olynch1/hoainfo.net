@@ -7,15 +7,13 @@ import uuid
 class User(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     email: str
-    password_hash: str  # ✅ required for bcrypt
-    role: Optional[str] = Field(default="resident")  # resident, board, admin
-    tier: Optional[str] = Field(default="solo")      # solo, household, landlord
+    password_hash: str
+    role: Optional[str] = Field(default="resident")
+    tier: Optional[str] = Field(default="solo")
     community_id: str
 
-    # Reverse relationships (optional)
     complaints: List["Complaint"] = Relationship(back_populates="user")
     messages: List["Message"] = Relationship(back_populates="user")
-
 
 class Complaint(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
@@ -28,7 +26,6 @@ class Complaint(SQLModel, table=True):
     read: bool = False
     user: Optional[User] = Relationship(back_populates="complaints")
 
-
 class Message(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     user_id: str = Field(foreign_key="user.id")
@@ -38,9 +35,7 @@ class Message(SQLModel, table=True):
     read: bool = False
     response: Optional[str] = None
     community_id: str
-
     user: Optional[User] = Relationship(back_populates="messages")
-
 
 class ActivityLog(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
@@ -51,7 +46,6 @@ class ActivityLog(SQLModel, table=True):
     user_agent: str
     timestamp: str
     community_id: str
-
 
 class TenantInvite(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
