@@ -13,6 +13,7 @@ import threading
 import time
 
 # 🔐 Local imports
+from src.backend.database import otp_store
 from src.backend.auth_utils import verify_token
 from src.backend.otp_routes import router as otp_router
 from src.backend.database import init_db, get_session
@@ -57,7 +58,6 @@ class LoginModel(BaseModel):
     otp: str
 
 # 🧠 OTP store — memory-based
-otp_store = {}
 
 def cleanup_expired_otps():
     while True:

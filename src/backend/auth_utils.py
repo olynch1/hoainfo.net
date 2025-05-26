@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from fastapi import HTTPException, Security, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -12,8 +13,11 @@ from src.backend.database import get_session
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
 bearer_scheme = HTTPBearer()
 
+# ✅ Token verification for protected routes
 def verify_token(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
     session: Session = Depends(get_session)
@@ -31,4 +35,11 @@ def verify_token(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+# ✅ Token creation for login and OTP flow
+def create_access_token(email: str) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode = {"sub": email, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 

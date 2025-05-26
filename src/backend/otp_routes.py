@@ -1,6 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from src.backend.database import otp_store
+from sqlmodel import Session, select
+
+from src.backend.auth_utils import create_access_token
+from src.backend.models import User
+from src.backend.database import otp_store, get_session
 
 router = APIRouter()
 
@@ -25,5 +29,14 @@ def verify_otp(request: OTPVerifyRequest):
 
     del otp_store[email]
 
-    return {"message": "OTP verified successfully"}
+    with get_session() as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        token = create_access_token(user.email)
+        return {
+            "access_token": token,
+            "token_type": "bearer"
+        }
 
