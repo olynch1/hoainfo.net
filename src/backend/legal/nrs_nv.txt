@@ -1,0 +1,80 @@
+116.001 - Short title
+Category: General Provisions
+Summary: Establishes the short title of the chapter.
+
+116.005 - Definitions
+Category: General Provisions
+Summary: Defines key terms used throughout the chapter.
+
+116.2101 - Creation of common-interest communities
+Category: Property & Development
+Summary: Outlines how to legally create a common-interest community.
+
+116.3101 - Organization of unit-owners’ association
+Category: Executive Board & Association
+Summary: Outlines the requirement for the organization of a unit-owners’ association.
+
+116.3102 - Powers of unit-owners’ association; limitations
+Category: Executive Board & Association
+Summary: Describes the powers and limitations of the unit-owners’ association.
+
+116.3103 - Fiduciary duties of board members
+Category: Executive Board & Association
+Summary: Defines fiduciary responsibilities and business judgment rules.
+
+116.31034 - Election of board members
+Category: Meetings and Voting
+Summary: Covers eligibility, disclosure, elections, and board certification procedures.
+
+116.3116 - Liens against units for assessments
+Category: Liens
+Summary: Explains the rights of the association to place liens on units for unpaid assessments.
+
+116.31175 - Maintenance of association records
+Category: Books and Records
+Summary: Mandates recordkeeping responsibilities and homeowner access rights.
+
+116.31183 - Retaliatory action prohibited
+Category: Miscellaneous Rights & Protections
+Summary: Prohibits retaliation by associations against homeowners who exercise their rights.
+
+116.795 - Injunctions
+Category: Enforcement & Discipline
+Summary: Provides for court-ordered injunctions to stop violations of this chapter.
+
+
+116.4101 - Outlines applicability and exceptions for protections related to homebuyers in common-interest communities.
+Category: Protection of Purchasers
+
+116.4102 - Defines liability for the preparation and delivery of public offering statements to buyers.
+Category: Protection of Purchasers
+
+116.4103 - Establishes general provisions for public offering statements, including required disclosures.
+Category: Protection of Purchasers
+
+116.4104 - Details offering statement requirements for communities subject to developmental rights.
+Category: Protection of Purchasers
+
+116.4108 - Grants purchasers the right to cancel a contract within a specified timeframe after receiving disclosures.
+Category: Protection of Purchasers
+
+116.4117 - Explains the impact of violations on legal rights and damages for noncompliance with laws or documents.
+Category: Protection of Purchasers
+
+116.600 - Creates the Commission for Common-Interest Communities and defines appointment procedures.
+Category: Administration & Enforcement
+
+116.625 - Establishes the Ombudsman for Common-Interest Communities and outlines powers and responsibilities.
+Category: Administration & Enforcement
+
+116.745 - Defines what constitutes a violation under the chapter.
+Category: Administration & Enforcement
+
+116.765 - Outlines procedures for investigating violations and escalating complaints to the Commission.
+Category: Administration & Enforcement
+
+116.785 - Details possible remedial actions for violations, including fines and removal from office.
+Category: Administration & Enforcement
+
+116.795 - Authorizes the use of injunctions to stop violations of NRS 116 provisions.
+Category: Administration & Enforcement

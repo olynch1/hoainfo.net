@@ -12,10 +12,6 @@ from src.backend.models import BoardVerificationRequest, User
 
 router = APIRouter()
 
-# 🤖 AI Helpdesk Access
-@router.get("/ai/helpdesk")
-def ai_helpdesk(user=Depends(require_tier("solo", "household", "landlord"))):
-    return {"response": f"You're accessing premium AI support as a {user.tier} user."}
 
 # 🧩 Submit Board Verification Request
 class BoardRequestModel(BaseModel):

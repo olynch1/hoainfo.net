@@ -1,0 +1,128 @@
+[
+  {
+    "number": "116.001",
+    "title": "Short title",
+    "category": "General Provisions",
+    "summary": "Establishes the short title of the chapter."
+  },
+  {
+    "number": "116.005",
+    "title": "Definitions",
+    "category": "General Provisions",
+    "summary": "Defines key terms used throughout the chapter."
+  },
+  {
+    "number": "116.2101",
+    "title": "Creation of common-interest communities",
+    "category": "Property & Development",
+    "summary": "Outlines how to legally create a common-interest community."
+  },
+  {
+    "number": "116.3101",
+    "title": "Organization of unit-owners\u2019 association",
+    "category": "Executive Board & Association",
+    "summary": "Outlines the requirement for the organization of a unit-owners\u2019 association."
+  },
+  {
+    "number": "116.3102",
+    "title": "Powers of unit-owners\u2019 association; limitations",
+    "category": "Executive Board & Association",
+    "summary": "Describes the powers and limitations of the unit-owners\u2019 association."
+  },
+  {
+    "number": "116.3103",
+    "title": "Fiduciary duties of board members",
+    "category": "Executive Board & Association",
+    "summary": "Defines fiduciary responsibilities and business judgment rules."
+  },
+  {
+    "number": "116.31034",
+    "title": "Election of board members",
+    "category": "Meetings and Voting",
+    "summary": "Covers eligibility, disclosure, elections, and board certification procedures."
+  },
+  {
+    "number": "116.3116",
+    "title": "Liens against units for assessments",
+    "category": "Liens",
+    "summary": "Explains the rights of the association to place liens on units for unpaid assessments."
+  },
+  {
+    "number": "116.31175",
+    "title": "Maintenance of association records",
+    "category": "Books and Records",
+    "summary": "Mandates recordkeeping responsibilities and homeowner access rights."
+  },
+  {
+    "number": "116.31183",
+    "title": "Retaliatory action prohibited",
+    "category": "Miscellaneous Rights & Protections",
+    "summary": "Prohibits retaliation by associations against homeowners who exercise their rights."
+  },
+  {
+    "number": "116.795",
+    "title": "Injunctions",
+    "category": "Enforcement & Discipline",
+    "summary": "Provides for court-ordered injunctions to stop violations of this chapter."
+  },
+  {
+    "statute": "116.4101",
+    "category": "Protection of Purchasers",
+    "summary": "Outlines applicability and exceptions for protections related to homebuyers in common-interest communities."
+  },
+  {
+    "statute": "116.4102",
+    "category": "Protection of Purchasers",
+    "summary": "Defines liability for the preparation and delivery of public offering statements to buyers."
+  },
+  {
+    "statute": "116.4103",
+    "category": "Protection of Purchasers",
+    "summary": "Establishes general provisions for public offering statements, including required disclosures."
+  },
+  {
+    "statute": "116.4104",
+    "category": "Protection of Purchasers",
+    "summary": "Details offering statement requirements for communities subject to developmental rights."
+  },
+  {
+    "statute": "116.4108",
+    "category": "Protection of Purchasers",
+    "summary": "Grants purchasers the right to cancel a contract within a specified timeframe after receiving disclosures."
+  },
+  {
+    "statute": "116.4117",
+    "category": "Protection of Purchasers",
+    "summary": "Explains the impact of violations on legal rights and damages for noncompliance with laws or documents."
+  },
+  {
+    "statute": "116.600",
+    "category": "Administration & Enforcement",
+    "summary": "Creates the Commission for Common-Interest Communities and defines appointment procedures."
+  },
+  {
+    "statute": "116.625",
+    "category": "Administration & Enforcement",
+    "summary": "Establishes the Ombudsman for Common-Interest Communities and outlines powers and responsibilities."
+  },
+  {
+    "statute": "116.745",
+    "category": "Administration & Enforcement",
+    "summary": "Defines what constitutes a violation under the chapter."
+  },
+  {
+    "statute": "116.765",
+    "category": "Administration & Enforcement",
+    "summary": "Outlines procedures for investigating violations and escalating complaints to the Commission."
+  },
+  {
+    "statute": "116.785",
+    "category": "Administration & Enforcement",
+    "summary": "Details possible remedial actions for violations, including fines and removal from office."
+  },
+  {
+    "statute": "116.795",
+    "category": "Administration & Enforcement",
+    "summary": "Authorizes the use of injunctions to stop violations of NRS 116 provisions."
+  }
+]

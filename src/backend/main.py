@@ -15,6 +15,7 @@ import threading
 import time
 
 # 🔐 Local imports
+from src.backend.legal_routes import router as legal_router
 from src.backend.database import otp_store
 from src.backend.auth_utils import verify_token
 from src.backend.otp_routes import router as otp_router
@@ -124,6 +125,7 @@ def resend_otp(email: str):
 app.include_router(secure_router)
 app.include_router(core_router)
 app.include_router(otp_router)
+app.include_router(legal_router, prefix="/api/legal")
 
 # 📂 Mount static files
 app.mount("/files", StaticFiles(directory="uploads"), name="files")

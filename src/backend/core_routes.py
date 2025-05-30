@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File, Request
+from fastapi import APIRouter, Depends, Query, HTTPException, Form, UploadFile, File, Request
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime
@@ -27,10 +27,6 @@ def admin_dashboard(user=Depends(require_role("admin"))):
 def board_votes(user=Depends(require_any_role("board", "admin"))):
     return {"votes": ["motion1: passed", "motion2: failed"]}
 
-# 💳 Premium tier access route
-@router.get("/ai/helpdesk")
-def ai_helpdesk(user=Depends(require_tier("landlord", "household"))):
-    return {"response": f"You're accessing premium AI support as a {user.tier} user."}
 
 # 🆙 Simulated plan upgrade route
 @router.post("/upgrade")
@@ -184,4 +180,43 @@ def update_complaint_status(
     session.commit()
 
     return {"message": f"Complaint status updated to '{status}'."}
+
+@router.get("/ai/helpdesk")
+def legal_ai_helpdesk(
+    keyword: str = Query(..., description="Keyword to search in state law"),
+    user: User = Depends(verify_token),
+    session: Session = Depends(get_session)
+):
+    if user.tier not in ("solo", "household", "landlord"):
+        return {"response": "Upgrade to access AI helpdesk."}
+
+    filepath = "src/backend/legal/nrs_nv.txt"
+    if not os.path.exists(filepath):
+        return {"error": "Law file not found."}
+
+    results = []
+    with open(filepath, "r") as file:
+        entry = {}
+        for line in file:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("==="):
+                if entry:
+                    results.append(entry)
+                entry = {"statute": line.strip("= ").strip(), "summary": ""}
+            elif line.startswith("SUMMARY:"):
+                entry["summary"] = line.replace("SUMMARY:", "").strip()
+        if entry:
+            results.append(entry)
+
+    matches = [
+        r for r in results
+        if keyword.lower() in r["summary"].lower() or keyword.lower() in r["statute"].lower()
+    ]
+
+    if not matches:
+        return {"response": f"No match found for '{keyword}'."}
+
+    return {"matches": matches}
 
