@@ -1,3 +1,4 @@
+from fastapi.responses import FileResponse
 from fastapi import APIRouter, Depends, Query, HTTPException, Form, UploadFile, File, Request
 from sqlmodel import Session, select
 from pydantic import BaseModel
@@ -220,3 +221,7 @@ def legal_ai_helpdesk(
 
     return {"matches": matches}
 
+@router.get("/inbox")
+def serve_inbox():
+    html_path = os.path.abspath("src/backend/inbox.html")
+    return FileResponse(html_path)

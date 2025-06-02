@@ -1,3 +1,4 @@
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, Form, Depends, Header, Request, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,12 +18,15 @@ import time
 # 🔐 Local imports
 from src.backend.legal_routes import router as legal_router
 from src.backend.database import otp_store
+from src.backend.routes.auth_routes import router as auth_router
 from src.backend.auth_utils import verify_token
 from src.backend.otp_routes import router as otp_router
 from src.backend.database import init_db, get_session
 from src.backend.models import User
 from src.backend.secure_routes import router as secure_router
 from src.backend.core_routes import router as core_router
+from src.backend.routes import message_routes               # ✅ keep this
+from src.backend.routes.message_routes import router as message_router
 
 # 🌐 Initialize FastAPI app
 app = FastAPI()
@@ -122,16 +126,23 @@ def resend_otp(email: str):
     return {"message": f"OTP reissued for {email}"}
 
 # 🔗 Include routers
+app.include_router(auth_router)
 app.include_router(secure_router)
 app.include_router(core_router)
 app.include_router(otp_router)
 app.include_router(legal_router, prefix="/api/legal")
+app.include_router(message_router)
 
 # 📂 Mount static files
-app.mount("/files", StaticFiles(directory="uploads"), name="files")
+app.mount("/", StaticFiles(directory="src/frontend", html=True), name="static")
 
 # 🔍 Root route
 @app.get("/")
 def root():
     return {"message": "HOAinfo API is live"}
+
+@app.get("/inbox")
+def serve_inbox():
+    inbox_path = os.path.join("src", "frontend", "inbox.html")
+    return FileResponse(inbox_path)
 

@@ -1,20 +1,33 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlmodel import Session
 from starlette.status import HTTP_403_FORBIDDEN
+
 from src.backend.models import User
-from src.backend.auth_utils import verify_token  # ✅ use this version only
+from src.backend.database import get_db, get_session
+from src.backend.auth_utils import verify_token  # ✅ trusted token verifier
 
-# 🔐 Require a single specific role (e.g. "admin")
+# 🔐 Token config
+SECRET_KEY = "super-secret-dev-key"
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# ✅ Validate current user using trusted verifier
+def get_current_user(user: User = Depends(verify_token)) -> User:
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+# 🔐 Require a specific role (e.g., "admin")
 def require_role(required_role: str):
-    def checker(user: User = Depends(verify_token)):
+    def role_dependency(user: User = Depends(get_current_user)):
         if user.role != required_role:
-            raise HTTPException(
-                status_code=HTTP_403_FORBIDDEN,
-                detail=f"Access denied for role: {user.role}"
-            )
+            raise HTTPException(status_code=403, detail="Insufficient role")
         return user
-    return checker
+    return role_dependency
 
-# 🔐 Require ANY one of multiple roles (e.g. "board" or "admin")
+# 🔐 Require any role from a set (e.g., "board", "admin")
 def require_any_role(*roles):
     def checker(user: User = Depends(verify_token)):
         if user.role not in roles:
@@ -25,7 +38,7 @@ def require_any_role(*roles):
         return user
     return checker
 
-# 💳 Require a specific subscription tier (e.g. "landlord", "household")
+# 💳 Require a specific subscription tier
 def require_tier(*tiers):
     def checker(user: User = Depends(verify_token)):
         if user.tier not in tiers:
