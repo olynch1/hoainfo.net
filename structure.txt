@@ -1,0 +1,148 @@
+.
+├── activity_log.y
+├── alembic
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions
+│       ├── 3ccd5c529fcf_initial_schema.py
+│       └── a0804c3f320b_add_token_and_status_to_tenantinvite.py
+├── alembic.ini
+├── auth_utils.py
+├── backups
+│   ├── backup_20250511_211204
+│   │   └── src
+│   ├── backup_20250512_010827
+│   │   ├── hoainfo_test.py
+│   │   ├── README.md
+│   │   └── src
+│   ├── backup_20250512_010936
+│   │   ├── hoainfo_test.py
+│   │   ├── README.md
+│   │   └── src
+│   ├── backup_20250512_010936.zip
+│   ├── backup_20250606_003148
+│   │   ├── backend
+│   │   ├── backend_snapshot_0506
+│   │   └── uploads
+│   ├── backup_hoainfo_phase3.db
+│   └── database_20250513_220714.db
+├── dashboard.html
+├── database.db
+├── docs
+├── DROP
+├── generate_landlord_token.py
+├── hoainfo_test.py
+├── hoainfo.db
+├── index.html
+├── invite_tenant_test.py
+├── LICENSE
+├── log_user_actvity
+├── main.py
+├── models_message_unused.py
+├── models_snapshot_unused.py
+├── models_unused.py
+├── otp_routes.py
+├── README.md
+├── scripts
+│   ├── init_db.py
+│   └── seed_test_data.py
+├── src
+│   ├── __init__.py
+│   ├── backend
+│   │   ├── __init__.py
+│   │   ├── audit_backend.sh
+│   │   ├── auth_utils.py
+│   │   ├── auth.py
+│   │   ├── backup_hoainfo
+│   │   ├── backup_hoainfo.zip
+│   │   ├── core_routes.py
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   ├── get-pip.py
+│   │   ├── inbox.html
+│   │   ├── legal
+│   │   ├── legal_routes.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── otp_routes.py
+│   │   ├── otp_service.py
+│   │   ├── requirements.txt
+│   │   ├── routes
+│   │   ├── secure_routes_backup.py
+│   │   ├── secure_routes.py
+│   │   ├── source
+│   │   └── venv
+│   ├── backend_snapshot_0506
+│   │   ├── audit_backend.sh
+│   │   ├── auth_utils.py
+│   │   ├── auth.py
+│   │   ├── backup_hoainfo
+│   │   ├── backup_hoainfo.zip
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   ├── get-pip.py
+│   │   ├── inbox.html
+│   │   ├── main.py
+│   │   ├── otp_service.py
+│   │   ├── requirements.txt
+│   │   ├── routes.py
+│   │   ├── secure_routes_backup.py
+│   │   ├── secure_routes.py
+│   │   ├── source
+│   │   └── venv
+│   ├── config
+│   ├── frontend
+│   │   ├── inbox.html
+│   │   └── templates
+│   └── uploads
+│       └── 00001
+├── src_snapshot_phase3_complete
+│   ├── backend
+│   │   ├── __init__.py
+│   │   ├── audit_backend.sh
+│   │   ├── auth_utils.py
+│   │   ├── auth.py
+│   │   ├── backup_hoainfo
+│   │   ├── backup_hoainfo.zip
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   ├── get-pip.py
+│   │   ├── inbox.html
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── otp_routes.py
+│   │   ├── otp_service.py
+│   │   ├── requirements.txt
+│   │   ├── routes.py
+│   │   ├── secure_routes_backup.py
+│   │   ├── secure_routes.py
+│   │   ├── source
+│   │   └── venv
+│   ├── backend_snapshot_0506
+│   │   ├── audit_backend.sh
+│   │   ├── auth_utils.py
+│   │   ├── auth.py
+│   │   ├── backup_hoainfo
+│   │   ├── backup_hoainfo.zip
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   ├── get-pip.py
+│   │   ├── inbox.html
+│   │   ├── main.py
+│   │   ├── otp_service.py
+│   │   ├── requirements.txt
+│   │   ├── routes.py
+│   │   ├── secure_routes_backup.py
+│   │   ├── secure_routes.py
+│   │   ├── source
+│   │   └── venv
+│   └── config
+├── structure.txt
+├── uploads
+│   ├── 3a0f10bf-6cb7-4c99-bd3c-4cdf8408269b.pdf
+│   ├── ee0f5165-0c52-4842-972d-1ef48b16e2cf.pdf
+│   └── f2ec1ebb-c4b5-4a60-afc6-2a31b1384511.md
+└── verify_tenant_test.py
+
+43 directories, 103 files

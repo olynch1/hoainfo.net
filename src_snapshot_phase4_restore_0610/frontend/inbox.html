@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📬 Board Inbox</title>
+</head>
+<body>
+  <h2>📬 Board Inbox</h2>
+  <label>Search:</label>
+  <input type="text" id="search" placeholder="Subject or sender...">
+  <button id="exportBtn">📤 Export to PDF</button>
+  <div id="messages"></div>
+  <button id="prevPage">⬅️ Previous Page</button>
+  <span id="pageLabel">Page 1</span>
+  <button id="nextPage">Next ➡️</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2FyZDFAZXhhbXBsZS5jb20iLCJleHAiOjE3NDg4MjA4ODB9.vnFElgG2p-vwudSOH7UT7CUFqrcS_2oT6Q-i4AhnCBI";
+    let currentPage = 1;
+    let currentQuery = "";
+    let lastResults = [];
+
+    async function loadMessages() {
+      const url = `http://localhost:8000/messages?page=${currentPage}&query=${encodeURIComponent(currentQuery)}`;
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        document.getElementById("messages").innerText = "❌ Failed to load messages.";
+        return;
+      }
+      const data = await res.json();
+      lastResults = data;
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+      data.forEach(msg => {
+        const div = document.createElement("div");
+        div.style.border = "1px solid gray";
+        div.style.padding = "10px";
+        div.style.marginBottom = "10px";
+        div.innerHTML = `
+          <strong>Subject:</strong> ${msg.subject}<br>
+          <strong>Sent:</strong> ${new Date(msg.timestamp).toLocaleDateString()}<br>
+          <strong>Read:</strong> ${msg.read ? "✅" : "❌"}<br>
+          ${msg.read_at ? `<strong>Read At:</strong> ${new Date(msg.read_at).toLocaleDateString()}<br>` : ""}
+          <textarea id="reply-${msg.id}" placeholder="Type your reply here..." rows="2" cols="40"></textarea><br>
+          <button onclick="sendReply('${msg.id}')">Send Reply</button>
+          <div id="status-${msg.id}"></div>
+        `;
+        container.appendChild(div);
+      });
+      document.getElementById("pageLabel").textContent = `Page ${currentPage}`;
+    }
+
+    async function sendReply(messageId) {
+      const replyText = document.getElementById(`reply-${messageId}`).value;
+      const res = await fetch(`http://localhost:8000/messages/${messageId}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ response: replyText })
+      });
+      const statusDiv = document.getElementById(`status-${messageId}`);
+      if (!res.ok) {
+        statusDiv.innerText = "❌ Failed to send reply.";
+        return;
+      }
+      statusDiv.innerText = "✅ Reply sent!";
+    }
+
+    document.getElementById("prevPage").onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadMessages();
+      }
+    };
+
+    document.getElementById("nextPage").onclick = () => {
+      currentPage++;
+      loadMessages();
+    };
+
+    document.getElementById("search").addEventListener("input", () => {
+      currentPage = 1;
+      currentQuery = document.getElementById("search").value;
+      loadMessages();
+    });
+    document.getElementById("search").addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        currentPage = 1;
+        currentQuery = document.getElementById("search").value;
+        loadMessages();
+      }
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text(`Board Inbox - Page ${currentPage} (Filtered: '${currentQuery}')`, 10, 10);
+      let y = 20;
+      lastResults.forEach(msg => {
+        doc.text(`Subject: ${msg.subject}, Read: ${msg.read ? "Yes" : "No"}, Sent: ${new Date(msg.timestamp).toLocaleDateString()}`, 10, y);
+        y += 10;
+      });
+      doc.save(`board_inbox_page${currentPage}.pdf`);
+    });
+
+    setInterval(loadMessages, 180000); // Auto-refresh every 3 minutes
+    loadMessages();
+  </script>
+</body>
+</html>
+

@@ -22,17 +22,20 @@ class User(SQLModel, table=True):
     messages: List["Message"] = Relationship(back_populates="user")
 
 class Complaint(SQLModel, table=True):
-    __table_arges__ = {"extend_existing": True}
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     user_id: str = Field(foreign_key="user.id")
     title: str
     description: str
-    timestamp: Optional[str]
+    timestamp: Optional[datetime] = Field(default_factory=datetime.utcnow)
     photo_url: Optional[str] = None
     community_id: str
-    read: bool = False
-    status: str = Field(default="pending")
-    user: Optional[User] = Relationship(back_populates="complaints")
+    read: bool = Field(default=False)
+    read_at: Optional[datetime] = None
+    status: str = Field(default="Pending")
+
+    user: Optional["User"] = Relationship(back_populates="complaints")
 
 class Message(SQLModel, table=True):
     __table_args__ = {"extend_existing": True}
@@ -50,35 +53,55 @@ class Message(SQLModel, table=True):
     user: Optional[User] = Relationship(back_populates="messages")
 
 class Document(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
     title: str
-    type: str  # e.g., "minutes", "ccr", "rules", etc.
-    upload_date: str
+    description: Optional[str] = None
+    filename: str
+    url: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
     community_id: str
-    uploader_id: str
-    file_url: str
 
 class ActivityLog(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    user_id: str
+    user_id: str = Field(foreign_key="user.id")
     action: str
     endpoint: str
-    ip_address: str
-    user_agent: str
-    timestamp: str
+    ip_address: Optional[str]
+    user_agent: Optional[str]
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
     community_id: str
 
 class TenantInvite(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
-    landlord_email: str
+    landlord_id: str = Field(foreign_key="user.id")
     tenant_email: str
-    community_id: str
-    verified: bool = False
+    verified: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class BoardVerificationRequest(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     user_id: str = Field(foreign_key="user.id")
     community_id: str
-    approved_by: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-    verified: bool = Field(default=False)
+    approvals: int = Field(default=0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Notification(SQLModel, table=True):
+    __table_args__ = {"extend_existing": True}
+
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    message: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_read: bool = Field(default=False)
+
+    user: Optional["User"] = Relationship(back_populates="notifications")
 

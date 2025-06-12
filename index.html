@@ -44,18 +44,16 @@
 
     let currentEmail = "";
 
-    // Auto-login check
     window.onload = async () => {
-      const token = localStorage.getItem("jwt_token");
+      const token = localStorage.getItem("access_token");
       if (token) {
         const res = await fetch("http://127.0.0.1:8000/me", {
-          headers: { "token": token }
+          headers: { "Authorization": `Bearer ${token}` }
         });
-        const data = await res.json();
         if (res.ok) {
           window.location.href = "dashboard.html";
         } else {
-          localStorage.removeItem("jwt_token");
+          localStorage.removeItem("access_token");
         }
       }
     };
@@ -66,63 +64,55 @@
       const email = document.getElementById("reg-email").value;
       const password = document.getElementById("reg-password").value;
 
-      const response = await fetch("http://127.0.0.1:8000/register", {
+      const res = await fetch("http://127.0.0.1:8000/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email, password })
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        message.textContent = "✅ Registration successful. Please log in.";
-      } else {
-        message.textContent = data.detail || "Registration failed";
-      }
+      const data = await res.json();
+      message.textContent = res.ok ? "✅ Registration successful." : (data.detail || "Registration failed");
     });
 
-    // Login handler
+    // Login handler → triggers OTP send
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       currentEmail = email;
 
-      const response = await fetch("http://127.0.0.1:8000/login", {
+      const res = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email, password })
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        message.textContent = data.message;
+      const data = await res.json();
+      if (res.ok) {
+        message.textContent = data.message || "OTP sent.";
         otpSection.classList.remove("hidden");
       } else {
         message.textContent = data.detail || "Login failed";
       }
     });
 
-    // OTP handler
+    // OTP verification
     otpForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const code = document.getElementById("otp").value;
+      const otp = document.getElementById("otp").value;
 
-      const formData = new URLSearchParams();
-      formData.append("username", currentEmail);
-      formData.append("code", code);
-
-      const response = await fetch("http://127.0.0.1:8000/verify-otp", {
+      const res = await fetch("http://127.0.0.1:8000/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
+        body: new URLSearchParams({ username: currentEmail, code: otp })
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("jwt_token", data.token);
+      const data = await res.json();
+      if (res.ok && data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
         window.location.href = "dashboard.html";
       } else {
-        message.textContent = data.detail || "Verification failed";
+        message.textContent = data.detail || "OTP verification failed";
       }
     });
   </script>

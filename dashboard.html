@@ -4,50 +4,238 @@
   <meta charset="UTF-8">
   <title>HOA Dashboard</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-    .card { background: #f2f2f2; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    h2 { margin-top: 0; }
-    button { padding: 10px; margin-top: 20px; background: #000; color: #fff; border: none; width: 100%; }
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
+    .card { background: #f2f2f2; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    button { padding: 10px; margin-top: 10px; background: #000; color: #fff; border: none; cursor: pointer; }
+    select, input, textarea { padding: 8px; width: 100%; margin-bottom: 10px; }
+    .dark { background-color: #121212; color: #eee; }
+    .dark .card { background-color: #1e1e1e; border-color: #555; }
+    a { color: inherit; text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="card" id="dashboard">
-    <h2>HOA Member Dashboard</h2>
+
+  <div class="card">
+    <h2>HOA Dashboard</h2>
     <p id="welcome-message"></p>
     <button onclick="logout()">Logout</button>
+    <button onclick="toggleDarkMode()" style="float:right;">🌙 Toggle Dark Mode</button>
+  </div>
+
+  <div class="card" id="admin-card" style="display: none;">
+    <h3>🧮 Admin Panel</h3>
+    <p>Total complaints, verifications, and more coming soon.</p>
+  </div>
+  
+  <div class="card" id="notifications-card" style="display: none;">
+    <h3>🔔 Notifications</h3>
+    <ul id="notification-list"></ul>
+  </div>
+
+  <div class="card">
+    <h3>📤 Submit New Complaint</h3>
+    <form id="complaint-form">
+      <input type="text" id="title" placeholder="Complaint title" required>
+      <textarea id="description" placeholder="Describe your issue..." required></textarea>
+      <input type="file" id="photo" accept="image/*">
+      <button type="submit">Submit Complaint</button>
+    </form>
+    <p id="submit-message"></p>
+  </div>
+
+  <div class="card">
+    <h3>📋 My Complaints</h3>
+    <label for="statusFilter">Filter by status:</label>
+    <select id="statusFilter" onchange="renderComplaints()">
+      <option value="all">All</option>
+      <option value="Pending">Pending</option>
+      <option value="In Review">In Review</option>
+      <option value="Resolved">Resolved</option>
+    </select>
+    <div id="complaints"></div>
   </div>
 
   <script>
+    const token = localStorage.getItem("access_token");
+    let complaintsData = [];
+    let currentUser = null;
+
     async function verifyAccess() {
-      const token = localStorage.getItem("jwt_token");
-      if (!token) {
-        window.location.href = "index.html";
-        return;
-      }
-
-      const res = await fetch("http://127.0.0.1:8000/me", {
-        headers: { "token": token }
-      });
-
+      if (!token) return window.location.href = "index.html";
+      const res = await fetch("http://127.0.0.1:8000/me", { headers: { "token": token } });
       const data = await res.json();
-
       if (!res.ok) {
-        localStorage.removeItem("jwt_token");
-        window.location.href = "index.html";
-        return;
+        localStorage.removeItem("access_token");
+        return window.location.href = "index.html";
       }
-
-      const email = data.message.split(", ")[1].replace("You're authenticated!", "").trim();
-      document.getElementById("welcome-message").textContent = `Welcome back, ${email}`;
+      currentUser = data.user;
+      document.getElementById("welcome-message").textContent = `Welcome back, ${currentUser.email}`;
+      if (currentUser.role === "admin") document.getElementById("admin-card").style.display = "block";
     }
 
     function logout() {
-      localStorage.removeItem("jwt_token");
+      localStorage.removeItem("access_token");
       window.location.href = "index.html";
     }
 
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function sanitize(input) {
+      return input.replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    async function loadComplaints() {
+      const res = await fetch("http://127.0.0.1:8000/complaints/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      complaintsData = await res.json();
+      renderComplaints();
+    }
+
+    function renderComplaints() {
+      const container = document.getElementById("complaints");
+      container.innerHTML = "";
+      const filter = document.getElementById("statusFilter").value;
+      const filtered = complaintsData.filter(c => filter === "all" || c.status === filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = "<p>No complaints match the selected filter.</p>";
+        return;
+      }
+
+    async function fetchNotifications() {
+      const res = await fetch("http://127.0.0.1:8000/notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      const container = document.getElementById("notification-list");
+      container.innerHTML = "";
+
+      if (data.length === 0) {
+        document.getElementById("notifications-card").style.display = "none";
+        return;
+      }
+
+      document.getElementById("notifications-card").style.display = "block";
+
+      data.forEach(n => {
+        const li = document.createElement("li");
+        li.textContent = `📣 ${n.message} – ${new Date(n.timestamp).toLocaleTimeString()}`;
+        container.appendChild(li);
+      });
+    }
+    
+    // 🔁 Poll every 30 seconds if tab is active
+    setInterval(() => {
+      if (document.hasFocus()) fetchNotifications();
+    }, 30000);
+
+      filtered.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <strong>📌 ${sanitize(c.title)}</strong><br>
+          📝 ${sanitize(c.description)}<br>
+          📍 Status: <b>${sanitize(c.status)}</b><br>
+          👁️ Read: ${c.read ? "✅" : "❌"}${c.read_at ? ` (at ${new Date(c.read_at).toLocaleDateString()})` : ""}<br>
+          🕒 ${new Date(c.timestamp).toLocaleDateString()}<br>
+          ${c.photo_url ? `📷 <a href="${c.photo_url}" target="_blank">View Photo</a><br>` : ""}
+          <button onclick="deleteComplaint('${c.id}')">🗑 Delete</button>
+          ${["board", "admin"].includes(currentUser.role) ? `
+            <select onchange="updateStatus('${c.id}', this.value)">
+              <option value="">Update status</option>
+              <option value="Pending">Pending</option>
+              <option value="In Review">In Review</option>
+              <option value="Resolved">Resolved</option>
+            </select>` : ""}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function deleteComplaint(id) {
+      await fetch(`http://127.0.0.1:8000/complaints/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      complaintsData = complaintsData.filter(c => c.id !== id);
+      renderComplaints();
+    }
+
+    async function updateStatus(id, newStatus) {
+      await fetch(`http://127.0.0.1:8000/complaints/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ new_status: newStatus })
+      });
+      await loadComplaints();
+    }
+
+    document.getElementById("complaint-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData();
+      form.append("title", document.getElementById("title").value);
+      form.append("description", document.getElementById("description").value);
+      const file = document.getElementById("photo").files[0];
+      if (file) form.append("photo", file);
+
+      const res = await fetch("http://127.0.0.1:8000/complaints", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form
+      });
+
+      const data = await res.json();
+      document.getElementById("submit-message").textContent = res.ok ? "✅ Complaint submitted." : data.detail;
+      if (res.ok) await loadComplaints();
+    });
+
+    setInterval(() => {
+      if (document.hasFocus()) {
+        loadComplaints();
+      }
+    }, 30000);
+
     verifyAccess();
-  </script>
-</body>
-</html>
+    loadComplaints();
+    fetchNotifications();
+
+    // 🔔 Notification polling every 20 seconds
+
+    setInterval(async () => {
+      if (!document.hasFocus()) return;
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/notifications/unread", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length > 0) {
+            alert(`🔔 You have ${data.length} new notification(s):\n\n` +
+                  data.map(n => `• ${n.message}`).join("\n"));
+        
+            // Mark them as read
+            await fetch("http://127.0.0.1:8000/notifications/mark-read", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Notification check failed:", err);
+      }
+    }, 20000);
+
+    </script>
+    </body>
+    </html>
 

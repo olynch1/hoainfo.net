@@ -1,3 +1,4 @@
+from routes.notification_routes import router as notification_router
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, Form, Depends, Header, Request, Security
@@ -25,8 +26,10 @@ from src.backend.database import init_db, get_session
 from src.backend.models import User
 from src.backend.secure_routes import router as secure_router
 from src.backend.core_routes import router as core_router
-from src.backend.routes import message_routes               # ✅ keep this
+from src.backend.routes import message_routes, complaint_routes               # ✅ keep this
 from src.backend.routes.message_routes import router as message_router
+from src.backend.routes.notification_routes import router as notification_router
+
 
 # 🌐 Initialize FastAPI app
 app = FastAPI()
@@ -131,7 +134,9 @@ app.include_router(secure_router)
 app.include_router(core_router)
 app.include_router(otp_router)
 app.include_router(legal_router, prefix="/api/legal")
-app.include_router(message_router)
+app.include_router(message_routes.router)
+app.include_router(complaint_routes.router)
+app.include_router(notification_router)
 
 # 📂 Mount static files
 app.mount("/", StaticFiles(directory="src/frontend", html=True), name="static")

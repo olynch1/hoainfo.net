@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📁 Community Document Vault</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    #message {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #e74c3c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>📁 Community Document Vault</h1>
+  <p id="message">Loading documents...</p>
+
+  <table id="docTable" style="display: none;">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Upload Date</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody id="docTableBody">
+      <!-- Dynamic rows go here -->
+    </tbody>
+  </table>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const message = document.getElementById("message");
+    const table = document.getElementById("docTable");
+    const body = document.getElementById("docTableBody");
+
+    if (!token) {
+      message.textContent = "🚫 No token found. Please log in.";
+    } else {
+      fetch("/documents/", {
+        method: "GET",
+        headers: {
+          "Authorization": token
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load documents");
+        return res.json();
+      })
+      .then(docs => {
+        if (!Array.isArray(docs) || docs.length === 0) {
+          message.textContent = "📭 No documents available for your community.";
+          return;
+        }
+
+        message.style.display = "none";
+        table.style.display = "table";
+
+        docs.forEach(doc => {
+          const row = document.createElement("tr");
+
+          const title = document.createElement("td");
+          title.textContent = doc.title || "Untitled";
+
+          const type = document.createElement("td");
+          type.textContent = doc.type?.toUpperCase() || "N/A";
+
+          const date = document.createElement("td");
+          date.textContent = doc.upload_date?.slice(0, 10) || "—";
+
+          const download = document.createElement("td");
+          const link = document.createElement("a");
+          link.href = `/documents/download/${doc.id}`;
+          link.textContent = "Download";
+          download.appendChild(link);
+
+          row.appendChild(title);
+          row.appendChild(type);
+          row.appendChild(date);
+          row.appendChild(download);
+          body.appendChild(row);
+        });
+      })
+      .catch(err => {
+        console.error("Error loading documents:", err);
+        message.textContent = "⚠️ Failed to load documents. Please log in or try again.";
+      });
+    }
+  </script>
+</body>
+</html>
+

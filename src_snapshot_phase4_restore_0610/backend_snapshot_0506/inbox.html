@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HOA Message Center</title>
+</head>
+<body>
+  <h1>📨 HOA Message Center</h1>
+
+  <section>
+    <h2>Send Message</h2>
+    <form id="messageForm">
+      <input type="text" id="receiver" placeholder="Receiver Email" required><br>
+      <input type="text" id="subject" placeholder="Subject"><br>
+      <textarea id="body" placeholder="Message body" required></textarea><br>
+      <button type="submit">Send</button>
+    </form>
+    <p id="sendStatus"></p>
+  </section>
+
+  <hr>
+
+  <section>
+    <h2>Inbox</h2>
+    <ul id="inbox"></ul>
+  </section>
+
+  <script>
+    const token = localStorage.getItem('token'); // JWT from login
+
+    // Send Message
+    document.getElementById("messageForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const receiver = document.getElementById("receiver").value;
+      const subject = document.getElementById("subject").value;
+      const body = document.getElementById("body").value;
+
+      const res = await fetch("http://localhost:8000/messages/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token
+        },
+        body: JSON.stringify({ receiver_email: receiver, subject, body })
+      });
+
+      const data = await res.json();
+      document.getElementById("sendStatus").innerText = data.status || data.detail || "Error";
+    });
+
+    // Load Inbox
+    async function loadInbox() {
+      const res = await fetch("http://localhost:8000/messages/inbox", {
+        headers: { Authorization: token }
+      });
+      const messages = await res.json();
+      const inboxEl = document.getElementById("inbox");
+      inboxEl.innerHTML = "";
+      messages.forEach(msg => {
+        const item = document.createElement("li");
+        item.innerText = `${msg.timestamp} — From: ${msg.sender_email} — ${msg.subject}`;
+        inboxEl.appendChild(item);
+      });
+    }
+
+    loadInbox();
+  </script>
+</body>
+</html>
+
