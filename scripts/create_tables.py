@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
 from database import engine
-from models import User, Complaint, Notification  # Make sure Notification is imported
+from src.backend.models import User, Complaint, Notification  # Make sure Notification is imported
 
 def create_db():
     SQLModel.metadata.create_all(engine)

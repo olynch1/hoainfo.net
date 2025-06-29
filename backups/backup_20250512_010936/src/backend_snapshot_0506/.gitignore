@@ -1,8 +1,0 @@
-venv/
-*.zip
-*.pyc
-__pycache__/
-secure_routes_backup.py
-backup_hoainfo/
-*.DS_Store
-

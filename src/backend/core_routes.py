@@ -8,10 +8,12 @@ import pytz
 import uuid
 import os
 
+from src.backend import models
 from src.backend.dependencies import require_role, require_any_role, require_tier
 from src.backend.database import get_session
 from src.backend.auth_utils import verify_token
-from src.backend.models import User, Complaint, Document
+from src.backend.models import User, Complaint as ComplaintDB, Document
+from src.backend.schemas import ComplaintResponse, ComplaintModel
 
 router = APIRouter()
 
@@ -36,11 +38,6 @@ def upgrade_tier(user: User = Depends(verify_token), session: Session = Depends(
     session.commit()
     return {"message": f"{user.email} upgraded to landlord tier."}
 
-# 📩 Submit complaint route
-class ComplaintModel(BaseModel):
-    title: str
-    description: str
-
 @router.post("/complaints")
 def submit_complaint(
     data: ComplaintModel,
@@ -50,7 +47,7 @@ def submit_complaint(
     tz = pytz.timezone("America/Los_Angeles")
     local_timestamp = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
-    complaint = Complaint(
+    complaint = models.Complaint(
         title=data.title,
         description=data.description,
         timestamp=local_timestamp,
@@ -61,13 +58,41 @@ def submit_complaint(
     session.commit()
     return {"message": "Complaint submitted."}
 
-@router.get("/complaints", response_model=List[Complaint])
+@router.get("/directory")
+def view_directory(user: User = Depends(verify_token), session: Session = Depends(get_session)):
+    if user.role not in ("resident", "board", "admin"):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    # 🔐 Board/Admin see everyone in the community
+    if user.role in ("board", "admin"):
+        users = session.exec(
+            select(User).where(User.community_id == user.community_id)
+        ).all()
+    else:
+        # Residents only see other residents who opted in
+        users = session.exec(
+            select(User).where(
+                User.community_id == user.community_id,
+                User.role == "resident",
+                User.show_in_directory == True
+            )
+        ).all()
+
+    return [
+        {
+            "name": f"{u.first_name} {u.last_name[0]}." if u.first_name and u.last_name else None,
+            "community_id": u.community_id
+        }
+        for u in users
+    ]
+
+@router.get("/complaints", response_model=List[ComplaintResponse])
 def get_complaints(
     user: User = Depends(verify_token),
     session: Session = Depends(get_session)
 ):
     complaints = session.exec(
-        select(Complaint).where(Complaint.community_id == user.community_id)
+        select(models.Complaint).where(models.Complaint.community_id == user.community_id)
     ).all()
     return complaints
 
@@ -163,23 +188,23 @@ def list_documents(
     return docs
     
 @router.patch("/complaints/{complaint_id}/status")
-def update_complaint_status(
+def update_complaint_status(   
     complaint_id: str,
     status: str = Form(...),
     user: User = Depends(verify_token),
     session: Session = Depends(get_session)
 ):
-    complaint = session.get(Complaint, complaint_id)
+    complaint = session.get(models.Complaint, complaint_id)
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-
+        
     if complaint.community_id != user.community_id:
         raise HTTPException(status_code=403, detail="Unauthorized to update this complaint")
-
+        
     complaint.status = status
     session.add(complaint)
     session.commit()
-
+    
     return {"message": f"Complaint status updated to '{status}'."}
 
 @router.get("/ai/helpdesk")

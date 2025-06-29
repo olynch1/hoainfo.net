@@ -1,9 +1,11 @@
 from uuid import UUID
+from datetime import datetime
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+
 from src.backend.database import get_session
-from src.backend.models import Complaint
+from src.backend import models
 from src.backend.dependencies import get_current_user, require_any_role
 
 router = APIRouter()
@@ -21,7 +23,7 @@ def submit_complaint(
     session: Session = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    new_complaint = Complaint(
+    new_complaint = models.Complaint(
         user_id=user.id,
         title=complaint.title,
         description=complaint.description,
@@ -46,9 +48,9 @@ def get_my_complaints(
     user=Depends(get_current_user)
 ):
     complaints = session.exec(
-        select(Complaint).where(Complaint.user_id == user.id)
+        select(models.Complaint).where(models.Complaint.user_id == user.id)
     ).all()
-    
+
     return [
         {
             "id": c.id,
@@ -70,7 +72,7 @@ def get_complaint_status(
     session: Session = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    complaint = session.exec(select(Complaint).where(Complaint.id == str(complaint_id))).first()
+    complaint = session.exec(select(models.Complaint).where(models.Complaint.id == str(complaint_id))).first()
     if not complaint or complaint.user_id != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     return {"status": complaint.status}
@@ -83,13 +85,14 @@ def update_complaint_status(
     session: Session = Depends(get_session),
     user=Depends(require_any_role("board", "admin"))
 ):
-    complaint = session.exec(select(Complaint).where(Complaint.id == str(complaint_id))).first()
+    complaint = session.exec(select(models.Complaint).where(models.Complaint.id == str(complaint_id))).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    
+
     complaint.status = new_status
     session.add(complaint)
     session.commit()
+
     return {"message": "Status updated", "status": complaint.status}
 
 @router.delete("/complaints/{complaint_id}")
@@ -98,10 +101,10 @@ def delete_complaint(
     session: Session = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    complaint = session.exec(select(Complaint).where(Complaint.id == str(complaint_id))).first()
+    complaint = session.exec(select(models.Complaint).where(models.Complaint.id == str(complaint_id))).first()
     if not complaint or complaint.user_id != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     session.delete(complaint)
     session.commit()
     return {"message": "Complaint deleted"}
@@ -112,7 +115,7 @@ def mark_complaint_as_read(
     session: Session = Depends(get_session),
     user=Depends(get_current_user)
 ):
-    complaint = session.exec(select(Complaint).where(Complaint.id == str(complaint_id))).first()
+    complaint = session.exec(select(models.Complaint).where(models.Complaint.id == str(complaint_id))).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
@@ -130,3 +133,4 @@ def mark_complaint_as_read(
         "read": True,
         "read_at": complaint.read_at
     }
+

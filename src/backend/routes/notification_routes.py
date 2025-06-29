@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
-from models import Notification
+from src.backend.models import Notification
 from database import get_session
 from typing import List
 

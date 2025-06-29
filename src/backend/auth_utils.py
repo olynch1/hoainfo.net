@@ -5,7 +5,7 @@ from fastapi import HTTPException, Security, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from jose import JWTError, jwt
 from database import get_session
-from models import User
+from src.backend.models import User
 from sqlmodel import select, Session
 import os
 

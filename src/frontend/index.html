@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HOAinfo Secure Login</title>
+
+  <!-- CSP for better security -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline';">
+
+  <!-- DOMPurify for sanitization -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+</head>
+<body>
+  <h1>HOAinfo Login</h1>
+
+  <!-- Login Form -->
+  <form id="login-form">
+    <label>Email: <input type="email" id="email" required /></label><br /><br />
+    <label>Password: <input type="password" id="password" required /></label><br /><br />
+    <button type="submit">Login</button>
+  </form>
+
+  <!-- OTP Section (hidden by default) -->
+  <div id="otp-section" style="display: none; margin-top: 20px;">
+    <label>Enter OTP: <input type="text" id="otp" required /></label>
+    <button id="verify-otp">Verify OTP</button>
+  </div>
+
+  <script>
+    console.log("✅ Inline login script loaded");
+
+    let emailGlobal = "";
+
+    function sanitize(input) {
+      return DOMPurify.sanitize(input);
+    }
+
+    const loginForm = document.getElementById("login-form");
+    const otpSection = document.getElementById("otp-section");
+    const verifyOtpButton = document.getElementById("verify-otp");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = sanitize(document.getElementById("email").value);
+      const password = sanitize(document.getElementById("password").value);
+
+      try {
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          emailGlobal = email;
+          localStorage.setItem("jwt_token", data.access_token);
+          console.log("✅ Login successful, token:", data.access_token);
+          otpSection.style.display = "block";
+          alert("OTP sent. Check your terminal or email.");
+        } else {
+          alert("❌ Login failed: " + sanitize(data.detail || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Network error: " + sanitize(err.message));
+      }
+    });
+
+    verifyOtpButton.addEventListener("click", async () => {
+      const otp = sanitize(document.getElementById("otp").value);
+
+      try {
+        const response = await fetch("/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailGlobal, otp })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          data = { detail: "Unknown response from server" };
+        }
+
+        if (response.ok) {
+          console.log("✅ OTP verified, JWT:", data.access_token);
+          localStorage.setItem("jwt_token", data.access_token);
+          alert("✅ OTP verified. Logged in successfully.");
+          window.location.href = "dashboard.html";
+        } else {
+          alert("❌ OTP verification failed: " + sanitize(data.detail || "Invalid code"));
+        }
+      } catch (err) {
+        alert("Network error: " + sanitize(err.message));
+      }
+    });
+  </script>
+</body>
+</html>
+

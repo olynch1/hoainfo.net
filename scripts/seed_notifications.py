@@ -1,4 +1,4 @@
-from models import Notification
+from src.backend.models import Notification
 from sqlmodel import Session
 from database import engine
 import uuid
